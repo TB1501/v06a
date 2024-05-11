@@ -3,8 +3,6 @@
 #include "nwpwin.h"
 #include "nwpdlg.h"
 
-int BOARD_SIZE = 8;
-int SQUARE_SIZE = 50;
 
 class size_dialog : public vsite::nwp::dialog {
 protected:
@@ -12,7 +10,13 @@ protected:
 	bool on_init_dialog() override;
 	bool on_ok() override;
 public:
+
 	int newBoardSize;
+	int BOARD_SIZE_V ;
+	int BOARD_SIZE_H ;
+
+	
+	
 };
 
 class main_window : public vsite::nwp::window {
@@ -20,10 +24,13 @@ protected:
 	void on_paint(HDC hdc) override;
 	void on_command(int id) override;
 	void on_destroy() override;
+public:
 
-	COLORREF squareColor1;
-	COLORREF squareColor2;
+	COLORREF squareColor;
 	bool useCustomColors;
+	int x=8;
+	int y=8;
 
 	void ChooseCustomColor();
 };
+

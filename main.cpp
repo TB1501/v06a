@@ -6,55 +6,54 @@ int size_dialog::idd() const {
 }
 
 bool size_dialog::on_init_dialog(){
-	SetDlgItemInt(*this, IDC_EDIT1, BOARD_SIZE, false);
+	SetDlgItemInt(*this, IDC_EDIT1, BOARD_SIZE_V, false);
+	SetDlgItemInt(*this, IDC_EDIT2, BOARD_SIZE_H, false);
 	return true;
 }
 
 bool size_dialog::on_ok(){
-	newBoardSize = GetDlgItemInt(*this, IDC_EDIT1, NULL, false);
+	BOARD_SIZE_V = GetDlgItemInt(*this, IDC_EDIT1, NULL, false);
+	BOARD_SIZE_H = GetDlgItemInt(*this, IDC_EDIT2, NULL, false);
 	return true;
 }
 
 
 void main_window::on_paint(HDC hdc){
+	
+		
+	main_window::squareColor=RGB(0, 0, 0);
+
+	HBRUSH blackBrush=CreateSolidBrush(squareColor);
+
 	RECT rc;
 	GetClientRect(*this, &rc);
-	
-	int width = BOARD_SIZE * SQUARE_SIZE;
-	int height = BOARD_SIZE * SQUARE_SIZE;
+	SetMapMode(hdc, MM_ANISOTROPIC);
+	SetViewportExtEx(hdc, rc.right, rc.bottom, NULL);
+	SetWindowExtEx(hdc, x, y, NULL);
 
-	int x = (rc.right - width) / 2;
-	int y = (rc.bottom - height) / 2;
 
-	HBRUSH whiteBrush = CreateSolidBrush(RGB(255, 255, 255));
-	HBRUSH blackBrush;
-	if (useCustomColors) {
-		blackBrush = CreateSolidBrush(squareColor1);
-	}
-	else {
-		blackBrush = CreateSolidBrush(RGB(0, 0, 0));
-	}
 	 
-	for (int i = 0; i < BOARD_SIZE; i++) {
-		for (int j = 0; j < BOARD_SIZE; j++) {
-			RECT square = {x + i * SQUARE_SIZE, y + j * SQUARE_SIZE, x + (i + 1) * SQUARE_SIZE, y + (j + 1) * SQUARE_SIZE};
-			HBRUSH brush = (i + j) % 2 == 0 ? whiteBrush : blackBrush;
-			FillRect(hdc, &square, brush);
+	for (int i = 0; i < x; i++) {
+		for (int j = i % 2; j < y; j += 2) {
+			RECT square = { i, j, i + 1, j + 1 };
+			FillRect(hdc, &square, blackBrush);
 		}
 	}
-	DeleteObject(whiteBrush);
-	if (useCustomColors) {
-		DeleteObject(blackBrush);
-	}
+	DeleteObject(blackBrush);
+
 }
 
 void main_window::on_command(int id){
 	switch (id) {
 	case ID_SIZE: {
 				size_dialog dlg;
+				dlg.BOARD_SIZE_V = y;
+				dlg.BOARD_SIZE_H = x;
+
 				if (dlg.do_modal(0, *this) == IDOK)
 				{
-					BOARD_SIZE = dlg.newBoardSize;
+					x = dlg.BOARD_SIZE_V;
+					y = dlg.BOARD_SIZE_H;
 					InvalidateRect(*this, NULL, true);
 
 				}
@@ -73,8 +72,7 @@ void main_window::on_command(int id){
 		cc.Flags = CC_FULLOPEN | CC_RGBINIT;
 
 		if (ChooseColor(&cc) == TRUE) {
-			squareColor1 = cc.rgbResult;
-			squareColor2 = ~cc.rgbResult;
+			squareColor = cc.rgbResult;
 			useCustomColors = true;
 			InvalidateRect(*this, 0, true);
 		}
