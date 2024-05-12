@@ -6,13 +6,13 @@ int size_dialog::idd() const {
 }
 
 bool size_dialog::on_init_dialog(){
-	SetDlgItemInt(*this, IDC_EDIT1, BOARD_SIZE_V, false);
+	SetDlgItemInt(*this, IDC_EDIT1, BOARD_SIZE_W, false);
 	SetDlgItemInt(*this, IDC_EDIT2, BOARD_SIZE_H, false);
 	return true;
 }
 
 bool size_dialog::on_ok(){
-	BOARD_SIZE_V = GetDlgItemInt(*this, IDC_EDIT1, NULL, false);
+	BOARD_SIZE_W = GetDlgItemInt(*this, IDC_EDIT1, NULL, false);
 	BOARD_SIZE_H = GetDlgItemInt(*this, IDC_EDIT2, NULL, false);
 	return true;
 }
@@ -20,21 +20,17 @@ bool size_dialog::on_ok(){
 
 void main_window::on_paint(HDC hdc){
 	
-		
-	main_window::squareColor=RGB(0, 0, 0);
-
-	HBRUSH blackBrush=CreateSolidBrush(squareColor);
-
+	HBRUSH blackBrush = CreateSolidBrush(squareColor);
 	RECT rc;
 	GetClientRect(*this, &rc);
 	SetMapMode(hdc, MM_ANISOTROPIC);
 	SetViewportExtEx(hdc, rc.right, rc.bottom, NULL);
-	SetWindowExtEx(hdc, x, y, NULL);
+	SetWindowExtEx(hdc, boardWidth, boardHeight, NULL);
 
 
 	 
-	for (int i = 0; i < x; i++) {
-		for (int j = i % 2; j < y; j += 2) {
+	for (int i = 0; i < boardWidth; i++) {
+		for (int j = i % 2; j < boardHeight; j += 2) {
 			RECT square = { i, j, i + 1, j + 1 };
 			FillRect(hdc, &square, blackBrush);
 		}
@@ -43,40 +39,47 @@ void main_window::on_paint(HDC hdc){
 
 }
 
-void main_window::on_command(int id){
-	switch (id) {
-	case ID_SIZE: {
+COLORREF chooseCustomColor[16] = { 0 };
+
+COLORREF get_color(HWND parent, COLORREF color) {
+	CHOOSECOLOR cc;
+	ZeroMemory(&cc, sizeof cc);
+	cc.lStructSize = sizeof cc;
+	cc.Flags = CC_FULLOPEN | CC_RGBINIT;
+	cc.hwndOwner = parent;
+	cc.lpCustColors = chooseCustomColor;
+	cc.rgbResult = color;
+	if (ChooseColor(&cc))
+		color = cc.rgbResult;
+	return color;
+}
+
+void main_window::on_command(int id)
+{
+	switch (id) 
+	{
+	case ID_SIZE: 
+	{
 				size_dialog dlg;
-				dlg.BOARD_SIZE_V = y;
-				dlg.BOARD_SIZE_H = x;
+				dlg.BOARD_SIZE_W = boardWidth;
+				dlg.BOARD_SIZE_H = boardHeight;
 
 				if (dlg.do_modal(0, *this) == IDOK)
 				{
-					x = dlg.BOARD_SIZE_V;
-					y = dlg.BOARD_SIZE_H;
+					boardWidth = dlg.BOARD_SIZE_W;
+					boardHeight = dlg.BOARD_SIZE_H;
 					InvalidateRect(*this, NULL, true);
 
 				}
 
 				break;
 	}
-	case ID_COLOR: {
+	case ID_COLOR: 
+	{
+		squareColor = get_color(*this, squareColor);
+		InvalidateRect(*this, nullptr, true);
+		break;	
 		
-		CHOOSECOLOR cc;
-		COLORREF customColors[16] = { 0 };
-		ZeroMemory(&cc, sizeof(cc));
-		cc.lStructSize = sizeof(cc);
-		cc.hwndOwner = *this;
-		cc.lpCustColors = customColors;
-		cc.rgbResult = RGB(255, 255, 255);
-		cc.Flags = CC_FULLOPEN | CC_RGBINIT;
-
-		if (ChooseColor(&cc) == TRUE) {
-			squareColor = cc.rgbResult;
-			useCustomColors = true;
-			InvalidateRect(*this, 0, true);
-		}
-		break;
 	}
 		case ID_EXIT: 
 			DestroyWindow(*this); 
@@ -84,9 +87,12 @@ void main_window::on_command(int id){
 	}
 }
 
+
 void main_window::on_destroy(){
 	::PostQuitMessage(0);
 }
+
+
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hp, LPSTR cmdLine, int nShow)
 {

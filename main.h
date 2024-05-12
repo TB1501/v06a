@@ -12,7 +12,7 @@ protected:
 public:
 
 	int newBoardSize;
-	int BOARD_SIZE_V ;
+	int BOARD_SIZE_W ;
 	int BOARD_SIZE_H ;
 
 	
@@ -26,11 +26,9 @@ protected:
 	void on_destroy() override;
 public:
 
-	COLORREF squareColor;
-	bool useCustomColors;
-	int x=8;
-	int y=8;
+	COLORREF squareColor= RGB(0, 0, 0);
+	int boardWidth=8;
+	int boardHeight=8;
 
-	void ChooseCustomColor();
 };
 
